@@ -1,59 +1,170 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Trivia UNITEPC - Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel backend for the Trivia UNITEPC interactive quiz system with real-time buzzer functionality, MySQL persistence, and Laravel Reverb WebSockets.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Real-time buzzer system with ultra-low latency using Laravel Reverb
+- RESTful API with Laravel Sanctum authentication
+- Three user roles: Admin, Presenter, and Player/Teams
+- MySQL database with comprehensive schema for games, teams, questions, and buzzer presses
+- Redis caching and session management
+- Event broadcasting for real-time updates
+- Docker containerization with orchestration
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Prerequisites
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.2+
+- Composer
+- MySQL 8.0+
+- Redis 7+
+- Docker and Docker Compose (for containerized deployment)
 
-## Learning Laravel
+## Setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Local Development
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. Clone this repository
+2. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+3. Update environment variables in `.env`:
+   - Database credentials
+   - Redis configuration
+   - Reverb WebSocket settings
 
-## Laravel Sponsors
+4. Install dependencies:
+   ```bash
+   composer install
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+5. Generate application key:
+   ```bash
+   php artisan key:generate
+   ```
 
-### Premium Partners
+6. Run database migrations and seeders:
+   ```bash
+   php artisan migrate --seed
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+7. Start Laravel Reverb WebSocket server:
+   ```bash
+   php artisan reverb:start
+   ```
 
-## Contributing
+8. Start the development server:
+   ```bash
+   php artisan serve
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Docker Deployment
 
-## Code of Conduct
+The project includes a `docker-compose.yml` file that orchestrates all services:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# Start all services
+docker-compose up -d
 
-## Security Vulnerabilities
+# View logs
+docker-compose logs -f
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Stop services
+docker-compose down
+```
+
+Services included:
+- **MySQL** (port 3307)
+- **Redis** (port 6379)
+- **Laravel Backend** (port 8000)
+- **Laravel Reverb** (port 8080)
+- **Frontend** (port 3000) - requires frontend repository
+- **phpMyAdmin** (port 8081)
+
+## Database Schema
+
+The system includes 13 tables:
+- `users` - User accounts with roles (admin, presenter, player)
+- `games` - Game sessions with status and settings
+- `teams` - Teams participating in games
+- `categories` - Question categories
+- `questions` - Trivia questions with points and difficulty
+- `buzzer_presses` - Real-time buzzer press records
+- `game_rounds` - Game round management
+- `team_scores` - Team scoring tracking
+- `game_question` - Pivot table for game questions
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `POST /api/auth/logout` - Logout user
+- `GET /api/auth/user` - Get current user
+
+### Games
+- `GET /api/games` - List games
+- `POST /api/games` - Create game (admin/presenter)
+- `GET /api/games/{game}` - Get game details
+- `POST /api/games/{game}/join` - Join game
+- `POST /api/games/{game}/start` - Start game (admin/presenter)
+
+### Buzzer
+- `POST /api/buzzer/press` - Press buzzer (player)
+- `POST /api/buzzer/reset` - Reset buzzer (presenter)
+- `POST /api/buzzer/lock` - Lock/unlock buzzer (presenter)
+
+### Categories & Questions
+- Full CRUD for categories and questions with role-based access
+
+## Real-time Events
+
+The system broadcasts the following events via Laravel Reverb:
+
+- `BuzzerPressed` - When a player presses the buzzer
+- `BuzzerReset` - When the presenter resets the buzzer
+- `BuzzerLocked` - When the buzzer is locked/unlocked
+- `GameStarted` - When a game starts
+
+## Seed Data
+
+The database seeder creates:
+- Admin user: `admin@trivia.com` / `password`
+- Presenter user: `presenter@trivia.com` / `password`
+- 6 player users across 3 teams
+- Demo game with code
+- 5 categories with 10 questions
+
+## Testing
+
+Run the test suite:
+
+```bash
+# Install dev dependencies
+composer install --dev
+
+# Run tests
+./vendor/bin/pint --test  # Code style check
+# PHPUnit tests can be added as needed
+```
+
+## Frontend Integration
+
+This backend is designed to work with the [Trivia UNITEPC Frontend](https://github.com/juanjo2702/unicosmos_front.git). The frontend connects to the API and WebSocket endpoints for real-time functionality.
+
+## Environment Variables
+
+Key environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DB_*` | Database connection | - |
+| `REDIS_*` | Redis connection | - |
+| `REVERB_*` | WebSocket configuration | - |
+| `APP_URL` | Application URL | http://localhost:8000 |
+| `SANCTUM_STATEFUL_DOMAINS` | Frontend domains for authentication | localhost:3000 |
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proprietary - Universidad Tecnológica de Pereira (UNITEPC)
