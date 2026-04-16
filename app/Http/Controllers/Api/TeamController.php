@@ -25,17 +25,26 @@ class TeamController extends BaseController
             }
 
             $validated = $request->validate([
-                'score' => 'required|integer|min:0',
-                'action' => 'nullable|in:add,set', // 'add' para sumar, 'set' para establecer
+                'score' => 'nullable|integer|min:0',
+                'delta' => 'nullable|integer',
+                'action' => 'nullable|in:add,set',
             ]);
 
-            $action = $validated['action'] ?? 'set';
-            $score = $validated['score'];
+            if (! array_key_exists('score', $validated) && ! array_key_exists('delta', $validated)) {
+                return $this->errorResponse('Debes enviar un puntaje o un delta', 422);
+            }
 
-            if ($action === 'add') {
-                $team->score += $score;
+            if (array_key_exists('delta', $validated)) {
+                $team->score = max(0, $team->score + $validated['delta']);
             } else {
-                $team->score = $score;
+                $action = $validated['action'] ?? 'set';
+                $score = $validated['score'];
+
+                if ($action === 'add') {
+                    $team->score += $score;
+                } else {
+                    $team->score = $score;
+                }
             }
 
             $team->save();
@@ -51,7 +60,7 @@ class TeamController extends BaseController
     public function show(Team $team)
     {
         try {
-            $team->load(['game', 'captain', 'members']);
+            $team->load(['game', 'captain', 'players']);
 
             return $this->successResponse($team);
         } catch (\Exception $e) {

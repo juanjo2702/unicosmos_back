@@ -22,7 +22,8 @@ class GameStarted implements ShouldBroadcast
     public function __construct(Game $game)
     {
         $this->gameId = $game->id;
-        $this->game = $game->load(['teams', 'creator']);
+        $this->game = $game->load(['teams', 'creator', 'currentQuestion.category']);
+        $this->decorateCurrentQuestion();
         $this->timestamp = now()->toISOString();
     }
 
@@ -34,5 +35,22 @@ class GameStarted implements ShouldBroadcast
     public function broadcastAs()
     {
         return 'game.started';
+    }
+
+    private function decorateCurrentQuestion(): void
+    {
+        if (! $this->game->currentQuestion) {
+            return;
+        }
+
+        $presentation = data_get($this->game->settings, "question_payloads.{$this->game->currentQuestion->id}");
+
+        if (! $presentation) {
+            return;
+        }
+
+        $this->game->currentQuestion->setAttribute('options', $presentation['options'] ?? []);
+        $this->game->currentQuestion->setAttribute('display_options', $presentation['options'] ?? []);
+        $this->game->setAttribute('current_question', $this->game->currentQuestion);
     }
 }

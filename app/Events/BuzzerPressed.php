@@ -18,11 +18,17 @@ class BuzzerPressed implements ShouldBroadcast
 
     public $timestamp;
 
-    public function __construct($teamId, $gameId, $timestamp)
+    public $responseEndsAt;
+
+    public $responseTimeLimit;
+
+    public function __construct($teamId, $gameId, $timestamp, $responseEndsAt, $responseTimeLimit)
     {
         $this->teamId = $teamId;
         $this->gameId = $gameId;
         $this->timestamp = $timestamp;
+        $this->responseEndsAt = $responseEndsAt;
+        $this->responseTimeLimit = $responseTimeLimit;
     }
 
     public function broadcastOn()

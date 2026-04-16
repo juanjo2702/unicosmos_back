@@ -211,7 +211,7 @@ class QuestionController extends BaseController
         // Reglas específicas por tipo
         $type = $request->type;
         if ($type === 'multiple_choice') {
-            $rules['options'] = 'required|array|min:2';
+            $rules['options'] = 'required|array|size:4';
             $rules['options.*.text'] = 'required|string|max:500';
             $rules['options.*.is_correct'] = 'required|boolean';
         } elseif ($type === 'true_false') {
@@ -220,7 +220,21 @@ class QuestionController extends BaseController
             $rules['correct_answer'] = 'required|string|max:500';
         }
 
-        return $request->validate($rules);
+        $validated = $request->validate($rules);
+
+        if ($type === 'multiple_choice') {
+            $correctOptionsCount = collect($validated['options'] ?? [])
+                ->filter(fn (array $option) => (bool) ($option['is_correct'] ?? false))
+                ->count();
+
+            if ($correctOptionsCount !== 1) {
+                throw ValidationException::withMessages([
+                    'options' => ['Debes marcar exactamente una opcion correcta.'],
+                ]);
+            }
+        }
+
+        return $validated;
     }
 
     private function prepareOptions(string $type, array $validated): ?array

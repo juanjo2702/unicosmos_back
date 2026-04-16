@@ -12,6 +12,13 @@ class Game extends Model
 {
     use SoftDeletes;
 
+    protected $appends = [
+        'max_teams',
+        'max_players_per_team',
+        'rounds_count',
+        'category_ids',
+    ];
+
     protected $fillable = [
         'name',
         'code',
@@ -84,5 +91,36 @@ class Game extends Model
     public function generateCode(): string
     {
         return strtoupper(substr(md5(uniqid()), 0, 6));
+    }
+
+    public function getMaxTeamsAttribute(): int
+    {
+        return (int) data_get($this->settings, 'max_teams', 10);
+    }
+
+    public function getMaxPlayersPerTeamAttribute(): int
+    {
+        return (int) data_get($this->settings, 'max_players_per_team', 4);
+    }
+
+    public function getRoundsCountAttribute(): int
+    {
+        return (int) data_get($this->settings, 'rounds_count', 3);
+    }
+
+    public function getCategoryIdsAttribute(): array
+    {
+        return array_values(array_filter(data_get($this->settings, 'category_ids', [])));
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?Model
+    {
+        $bindingField = $field;
+
+        if ($bindingField === null) {
+            $bindingField = is_numeric($value) ? $this->getKeyName() : 'code';
+        }
+
+        return $this->where($bindingField, $value)->firstOrFail();
     }
 }

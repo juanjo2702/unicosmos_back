@@ -62,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{game}', [GameController::class, 'destroy'])->middleware('role:admin');
         Route::post('/{game}/join', [GameController::class, 'join']);
         Route::post('/{game}/start', [GameController::class, 'start'])->middleware('role:admin,presenter');
+        Route::post('/{game}/next-question', [GameController::class, 'nextQuestion'])->middleware('role:admin,presenter');
         Route::get('/{game}/lobby', [GameController::class, 'lobby']);
     });
 

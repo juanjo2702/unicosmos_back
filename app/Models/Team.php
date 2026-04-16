@@ -42,6 +42,11 @@ class Team extends Model
         return $this->hasMany(User::class);
     }
 
+    public function players(): HasMany
+    {
+        return $this->members();
+    }
+
     public function buzzerPresses(): HasMany
     {
         return $this->hasMany(BuzzerPress::class);
